@@ -7,7 +7,7 @@ from otree.api import (
 from django.db import models as djmodels
 from django.db.models import F
 from . import ret_functions
-
+import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ doc = """
 
 class Constants(BaseConstants):
     name_in_url = 'realefforttask'
-    players_per_group = 2
+    players_per_group = 3
     num_rounds = 1
     # this parameter defines how much time a user will stay on a RET page per round (in seconds)
     task_time = 180
@@ -51,10 +51,18 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    ...
+    def set_ranking(self):
+        players = self.get_players()
+        values = [p.num_tasks_correct for p in players]
+        data = dict(player=players, value=values)
+        df = pd.DataFrame(data)
+        df['rank'] = df['value'].rank(method='dense', ascending=False)
+        for index, row in df.iterrows():
+            row['player'].rank = int(row['rank'])
 
 
 class Player(BasePlayer):
+    rank = models.IntegerField()
     # here we store all tasks solved in this specific round - for further analysis
     tasks_dump = models.LongStringField(doc='to store all tasks with answers, diff level and feedback')
     training_answer_All = models.IntegerField(verbose_name='This training_answer')
