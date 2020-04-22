@@ -56,7 +56,7 @@ class Group(BaseGroup):
         values = [p.num_tasks_correct for p in players]
         data = dict(player=players, value=values)
         df = pd.DataFrame(data)
-        df['rank'] = df['value'].rank(method='dense', ascending=False)
+        df['rank'] = df['value'].rank(method='min', ascending=False)
         for index, row in df.iterrows():
             row['player'].rank = int(row['rank'])
 
